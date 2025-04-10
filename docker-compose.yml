@@ -1,0 +1,10 @@
+version: '3'
+services:
+  devenv:
+    build:
+      context: .
+    image: devenv
+    container_name: devenv
+    volumes:
+      - ./project:/project
+    tty: true
