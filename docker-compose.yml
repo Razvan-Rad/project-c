@@ -6,5 +6,6 @@ services:
     image: devenv
     container_name: devenv
     volumes:
-      - ./project:/project
+      - ./project:/root/project
+      - ./nvim:/root/.config/nvim
     tty: true

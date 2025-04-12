@@ -1,10 +1,29 @@
 FROM ubuntu:latest
 
+# Install dependencies
 RUN apt-get update && \
-    apt-get install -y build-essential git && \
-    apt-get install -y nano neovim && \
-    apt-get install ripgrep && \
+    apt-get install -y \
+        build-essential \
+        pipx \
+        git \
+        nano \
+        ripgrep \
+        fuse \
+        curl \
+        wget \
+        unzip \
+        ca-certificates && \
     apt-get clean
-WORKDIR /project
-COPY nvim_config ~/.config
-RUN /bin/bash
+
+# Install rustup and set default toolchain
+RUN curl https://sh.rustup.rs -sSf | sh -s -- -y && \
+    /root/.cargo/bin/rustup default stable
+
+# Install latest Neovim
+RUN curl -LO https://github.com/neovim/neovim/releases/latest/download/nvim-linux-x86_64.tar.gz && \
+    tar -C /opt -xzf nvim-linux-x86_64.tar.gz && \
+    ln -s /opt/nvim-linux-x86_64/bin/nvim /usr/local/bin && \
+    rm nvim-linux-x86_64.tar.gz
+
+WORKDIR /root
+ENV PATH="/usr/local/bin:/root/.cargo/bin:$PATH"
