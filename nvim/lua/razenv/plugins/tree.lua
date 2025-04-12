@@ -7,78 +7,71 @@ return {
     "akinsho/toggleterm.nvim",
   },
   config = function()
+    -- Basic setup
     vim.g.loaded_netrw = 1
     vim.g.loaded_netrwPlugin = 1
     vim.opt.termguicolors = true
 
-    -- Setup NvimTree
+    -- NvimTree configuration
     require("nvim-tree").setup({
       sort = { sorter = "case_sensitive" },
       view = { width = 30 },
       renderer = { group_empty = true },
       filters = { dotfiles = true },
     })
-  require("toggleterm").setup({
-    open_mapping = [[<c-\>]],
-    direction = "horizontal",
-    size = 15,
-    persist_size = true,
-    shade_terminals = true,
-    start_in_insert = true,
-    close_on_exit = false,
-  })
 
-  -- Modify the VimEnter autocmd
-  vim.api.nvim_create_autocmd({ "VimEnter" }, {
-    callback = function()
-        -- Open NvimTree at left
-        vim.cmd("NvimTreeOpen")
-        vim.cmd("wincmd H")  -- Move to far left
-        vim.cmd("vertical resize 30")
-        
-        -- Open terminal at bottom
-        local Terminal = require("toggleterm.terminal").Terminal
-        local term = Terminal:new({
-            id = 1,
-            direction = "horizontal",
-            on_open = function(term)
-                vim.opt_local.statusline = " "
-                -- Ensure terminal stays at bottom
-                vim.cmd("wincmd J")
-            end
-        })
-        
-        if not term:is_open() then
-            term:toggle()
-            vim.cmd("stopinsert")
-            vim.cmd("wincmd p")  -- Go back to previous window
-        end
-    end,
-  })
+    -- Terminal configuration
+    require("toggleterm").setup({
+      open_mapping = [[<c-\>]],
+      direction = "horizontal",
+      size = 15,
+      persist_size = true,
+      shade_terminals = true,
+      start_in_insert = true,
+      close_on_exit = false,
+    })
 
-    -- F12 mapping to toggle terminal
-    vim.keymap.set({ "n", "t" }, "<F12>", function()
-      local term = require("toggleterm.terminal").get(1)
+    local file_commands = {
+      rust = "cargo run",
+      python = "python3 %",
+      javascript = "node %",
+      typescript = "ts-node %",
+      lua = "lua %",
+      sh = "bash %",
+    }
+
+    -- Function to get and run the appropriate command
+    local function run_file_command()
+      local filetype = vim.bo.filetype
+      local cmd = file_commands[filetype] or "echo 'No command defined for this filetype'"
       
-      if term:is_open() then
-        if vim.api.nvim_get_current_win() == term.window then
-          term:close()
-        else
-          term:focus()
-        end
-      else
+      local term = require("toggleterm.terminal").get(1)
+      if not term:is_open() then
         term:open()
-        term:focus()
       end
-    end, { noremap = true, silent = true })
+      
+      term:send(cmd, false)
+      term:focus()
+    end
 
-    -- Additional autocmd to ensure statusline stays clean
-    vim.api.nvim_create_autocmd({ "TermOpen" }, {
-      pattern = "term://*",
+    -- Key mappings
+    vim.keymap.set("n", "<F5>", run_file_command, { desc = "Run file-specific command" })
+    vim.keymap.set({ "n", "t" }, "<F12>", function()
+      require("toggleterm.terminal").get(1):toggle()
+    end, { desc = "Toggle terminal" })
+
+    -- Startup layout
+    vim.api.nvim_create_autocmd({ "VimEnter" }, {
       callback = function()
-        vim.opt_local.statusline = " "
-        -- Ensure we're in normal mode when terminal opens
-        vim.cmd("stopinsert")
+        -- Open and position NvimTree
+        vim.cmd("NvimTreeOpen | wincmd H | vertical resize 30")
+        
+        -- Open terminal (hidden)
+        local term = require("toggleterm.terminal").Terminal:new({ id = 1, on_open = function(term) vim.opt_local.statusline = " " end })
+        if not term:is_open() then
+          term:toggle()
+          vim.cmd("stopinsert | wincmd p")
+        end
       end,
     })
   end,
