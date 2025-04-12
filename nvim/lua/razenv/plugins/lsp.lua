@@ -35,7 +35,6 @@ return {
             ensure_installed = {
                 "lua_ls",
                 "rust_analyzer",
-                "gopls",
             },
             handlers = {
                 function(server_name) -- default handler (optional)
@@ -106,6 +105,9 @@ return {
         })
 
         vim.diagnostic.config({
+            virtual_text = true,   -- inline text (in the buffer)
+            signs = true,          -- show signs in the gutter
+            underline = true,      -- underline issues
             -- update_in_insert = true,
             float = {
                 focusable = false,
