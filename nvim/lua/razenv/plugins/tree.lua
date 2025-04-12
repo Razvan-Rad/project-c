@@ -18,41 +18,43 @@ return {
       renderer = { group_empty = true },
       filters = { dotfiles = true },
     })
+  require("toggleterm").setup({
+    open_mapping = [[<c-\>]],
+    direction = "horizontal",
+    size = 15,
+    persist_size = true,
+    shade_terminals = true,
+    start_in_insert = true,
+    close_on_exit = false,
+  })
 
-    -- Setup terminal
-    require("toggleterm").setup({
-      open_mapping = [[<c-\>]],
-      direction = "horizontal",
-      size = 15,
-      persist_size = true,
-      shade_terminals = true,
-      start_in_insert = true,
-      close_on_exit = false,
-      on_open = function(term)
-        vim.opt_local.statusline = " "
-        -- Ensure terminal goes to bottom
-        vim.cmd("wincmd J")
-      end,
-    })
-
-    -- Auto-open layout on startup
-    vim.api.nvim_create_autocmd({ "VimEnter" }, {
-      callback = function()
-        -- Open NvimTree at top
+  -- Modify the VimEnter autocmd
+  vim.api.nvim_create_autocmd({ "VimEnter" }, {
+    callback = function()
+        -- Open NvimTree at left
         vim.cmd("NvimTreeOpen")
-        vim.cmd("wincmd K")
-        vim.cmd("resize 30")
+        vim.cmd("wincmd H")  -- Move to far left
+        vim.cmd("vertical resize 30")
         
-        -- Open terminal at bottom but don't focus it
+        -- Open terminal at bottom
         local Terminal = require("toggleterm.terminal").Terminal
-        local term = Terminal:new({ id = 1 })
+        local term = Terminal:new({
+            id = 1,
+            direction = "horizontal",
+            on_open = function(term)
+                vim.opt_local.statusline = " "
+                -- Ensure terminal stays at bottom
+                vim.cmd("wincmd J")
+            end
+        })
+        
         if not term:is_open() then
-          term:toggle()
-          -- Immediately switch focus back to editor
-          vim.cmd("wincmd p")
+            term:toggle()
+            vim.cmd("stopinsert")
+            vim.cmd("wincmd p")  -- Go back to previous window
         end
-      end,
-    })
+    end,
+  })
 
     -- F12 mapping to toggle terminal
     vim.keymap.set({ "n", "t" }, "<F12>", function()
@@ -75,6 +77,8 @@ return {
       pattern = "term://*",
       callback = function()
         vim.opt_local.statusline = " "
+        -- Ensure we're in normal mode when terminal opens
+        vim.cmd("stopinsert")
       end,
     })
   end,
