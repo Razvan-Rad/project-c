@@ -42,6 +42,7 @@ return {
 
     -- Function to get and run the appropriate command
     local function run_file_command()
+      vim.cmd("w");
       local filetype = vim.bo.filetype
       local cmd = file_commands[filetype] or "echo 'No command defined for this filetype'"
       
@@ -52,11 +53,28 @@ return {
       
       term:send(cmd, false)
       term:focus()
+      vim.cmd("startinsert")
     end
 
     -- Key mappings
-    vim.keymap.set("n", "<F5>", run_file_command, { desc = "Run file-specific command" })
-    vim.keymap.set({ "n", "t" }, "<F12>", function()
+    vim.keymap.set({'n', 'i', 'v', 'x'}, '<F5>', function()
+      -- Handle all visual modes (including linewise visual)
+      local mode = vim.fn.mode()
+      if mode ~= 'n' then
+        -- Use proper escape sequence that works in all cases
+        vim.api.nvim_feedkeys(
+          vim.api.nvim_replace_termcodes('<Esc>', true, false, true),
+          'n',
+          true
+        )
+      end
+      
+      -- Small delay to ensure mode transition completes
+      vim.defer_fn(function()
+        run_file_command()
+      end, 10)
+    end, {desc = 'Run file-specific command'})
+  vim.keymap.set({ "n", "t" }, "<F12>", function()
       require("toggleterm.terminal").get(1):toggle()
     end, { desc = "Toggle terminal" })
 
