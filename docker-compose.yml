@@ -18,8 +18,10 @@ services:
     image: devweb
     container_name: devweb
     volumes:
+      - ./project:/root/project
+      - ./nvim:/root/.config/nvim
       - ./project-outsourcing:/root/outsourcing
     ports:
       - "80:80"
-      - "8080:8080"
+      - "443:443"
     tty: true
