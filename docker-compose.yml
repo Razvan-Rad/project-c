@@ -3,9 +3,23 @@ services:
   devenv:
     build:
       context: .
+      dockerfile: Dockerfile.devenv
     image: devenv
     container_name: devenv
     volumes:
       - ./project:/root/project
       - ./nvim:/root/.config/nvim
+    tty: true
+
+  devweb:
+    build:
+      context: .
+      dockerfile: Dockerfile.devweb
+    image: devweb
+    container_name: devweb
+    volumes:
+      - ./project-outsourcing:/root/outsourcing
+    ports:
+      - "80:80"
+      - "8080:8080"
     tty: true
