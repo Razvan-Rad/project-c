@@ -13,6 +13,7 @@ RUN apt-get update && \
         wget \
         unzip \
         ca-certificates && \
+        xclip && \
     apt-get clean
 
 # Install rustup and set default toolchain
