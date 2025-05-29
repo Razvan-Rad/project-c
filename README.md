@@ -14,8 +14,14 @@ docker-compose up devweb
 
 <h4>attach</h4>
 
+Windows
 ```
 docker attach devenv
+```
+Debian
+
+```
+sudo docker exec -t -i devweb /bin/bash
 ```
 
 </h1>Neovim</h1>
